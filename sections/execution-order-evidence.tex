@@ -1,0 +1,7 @@
+We repeated the full run with seed 20261117. The seed changed the order of the
+tests, but each case produced the same result and each failing case stopped at
+the same assertion. Each example starts a fresh application process, creates
+its own fixtures through its \textit{Background}, and keeps its responses and IDs
+in separate scenario state. Because the cases establish their own starting
+conditions, they do not rely on data left by an earlier test. The matching
+results across the two orders support this design.

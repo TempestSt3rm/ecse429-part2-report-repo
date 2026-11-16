@@ -1,0 +1,53 @@
+\NewContentPage
+\ReportSubsection{6.3 Bug Findings and Remaining Risks}
+The 24 failed examples relate to the nine findings below. All carry \Path{@bug},
+and 16 also carry \Path{@policy}. Each finding describes the expected and actual
+behavior, its impact, and the affected stories. The full reproduction steps are
+recorded in \Path{BUG_REPORT.md}.
+
+\begin{ReportTable}{@{}P{.09\linewidth}P{.11\linewidth}YP{.06\linewidth}@{}}
+\toprule
+\textbf{ID} & \textbf{Story} & \textbf{Observed outcome and consequence} & \textbf{Fails}\\
+\midrule
+BR01 & 15 & Missing/deleted project task reads return unrelated work; students can see tasks outside the selected project. & 4\\
+BR03 & 13, 14 & Category membership appears only on the writing side; reverse browsing can hide filed work. Reciprocity is a policy. & 6\\
+BR04 & 13 & A deleted category remains readable through a task link after direct GET returns 404. & 2\\
+BR06 & 11 & Plain XML IDs return 404 while equivalent CDATA and JSON strings link successfully. & 2\\
+BR19 & 11 & Numeric JSON IDs return 404 while string IDs work. Numeric coercion is a policy. & 2\\
+BR32 & 15 & Title-only project PUT removes task links. Preserving omitted links is a policy. & 2\\
+B-N1 & 12 & Title-only task PUT removes its project link; a rename can lose filing. Preservation is a policy. & 2\\
+B-N2 & 5 & Invalid done-status filters return 200 with an empty list. Rejecting them is a policy. & 2\\
+B-N3 & 5 & Unknown query fields are ignored and return unfiltered work. Rejecting them is a policy. & 2\\
+\bottomrule
+\end{ReportTable}
+
+\ReportSubsection{6.4 New Findings and Their Consequences}
+\RunIn{B-N1: Title-only task replacement removes its project link}
+We created a project with two tasks and sent a PUT containing only a new title
+to one task. Reading the project's tasks and the task's reverse \Path{tasksof}
+view showed that the selected link had been removed, while the other task
+remained. Our workflow expects a wording change to preserve project membership,
+but the API does not clearly promise this for PUT. Sending the title change
+through POST preserved the link.
+
+\RunIn{B-N2: Invalid done-status filter is accepted}
+With unfinished and completed todos present, we compared valid boolean filters
+with \Path{doneStatus=maybe} and \Path{doneStatus=not-a-boolean}. The invalid
+queries returned HTTP 200 and an empty list. Our chosen rule expects HTTP 400,
+because an invalid filter should be distinguishable from having no work left.
+The API rejects invalid booleans when creating a todo, but that does not establish
+the same validation rule for queries.
+
+\RunIn{B-N3: Unknown todo filter is ignored}
+We captured the todo list, then queried \Path{colour=red} and \Path{doneStats=red}.
+Both returned the same unfiltered records. A valid title filter returned one
+record. Our workflow expects HTTP 400 for unknown fields, although the
+documentation does not specify that rule. Ignoring a misspelled field can make
+a student think a filter was applied when it was not.
+
+\RunIn{What needs attention}
+We would prioritize unrelated project data and references to deleted categories,
+because both can cause the student to act on the wrong records. Additional
+checks reproduced the XML difference, a deleted category in a project
+view, and the unknown-filter results~[\ref{ref:probes}]. BR17 records supported
+inline creation in stories 11 and 13.

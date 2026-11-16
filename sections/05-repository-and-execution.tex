@@ -1,0 +1,52 @@
+\ReportSection{5. Source Repository and Reproduction}
+\ReportSubsection{5.1 Repository Structure}
+Our source repository is
+\url{https://github.com/james-helou/ECSE429-Project-B}.
+We verified the executable code at commit \Path{e404151}. Later changes to
+\Path{README.md} and \Path{BUG_REPORT.md} update the written explanations.
+Section~8 gives the full commit ID and the execution records.
+
+\begin{lstlisting}
+ECSE429-Project-B/
++-- features/
+|   +-- Story<N>*.feature         User stories and examples
++-- steps/
+|   +-- Story<N>StepDefs.js       Steps for each story
+|   +-- stepDefs.js              Shared steps and After hook
++-- TestUtil.js                  HTTP requests and record checks
++-- setup.js                     API startup, reset, and shutdown
++-- package.json                 Run commands and dependencies
++-- package-lock.json            Locked dependency versions
++-- runTodoManagerRestAPI-1.5.5.jar
++-- BUG_REPORT.md                Findings and reproduction steps
++-- README.md                    Setup and run instructions
+\end{lstlisting}
+
+\ReportSubsection{5.2 Environment and Run Instructions}
+We ran the November 16 checks on Windows using Microsoft OpenJDK 17.0.12,
+Node.js 22.13.1, npm 11.6.2, Cucumber.js 11.3.0, and Chai 4.5.0.
+The suite requires Java and Node 18 or newer. From the repository directory,
+install the dependencies and run the tests. On our Windows machine, we selected
+the installed JDK with the following PowerShell commands:
+\begin{lstlisting}
+$env:JAVA_HOME = 'C:\Program Files\Microsoft\jdk-17.0.12.7-hotspot'
+npm.cmd ci
+npm.cmd run cucumber
+\end{lstlisting}
+The harness starts and stops the JAR automatically. Keep port 4567 free and run
+one suite at a time. If an API instance is already answering on that port, the
+harness shuts it down and its in-memory data is discarded.
+
+\ReportSubsection{5.3 Changing the Order and Stopping the Service}
+The default run uses random seed 765432. The commands below select a different
+order and save its results, then run the service-stopped check:
+\begin{lstlisting}
+npx.cmd --no-install cucumber-js ./features -r ./steps `
+  --order random:20261117 --format summary `
+  --format json:results-seed-20261117.json
+npm.cmd run cucumber:no-server
+\end{lstlisting}
+For the last command, leave the API stopped. Autostart is disabled, so every case
+should fail at the readiness step. We expect exit code 1 because failures are
+expected. To run only cases without the
+\Path{@bug} tag, use \Path{npm run cucumber:no-bugs}.

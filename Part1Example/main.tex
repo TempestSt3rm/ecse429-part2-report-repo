@@ -1,0 +1,809 @@
+% !TeX program = xelatex
+% ECSE 429 Project Part A -- Group 3
+% Working scaffold; grey prompts need evidence before submission.
+% Adapted from ECSE 211 Profile 1. Target: 5--10 pages.
+% Manual page breaks group the draft sections. Reflow as content is added.
+\documentclass[12pt,letterpaper]{article}
+\input{report-style.tex}
+
+% -------------------------- Cover metadata --------------------------
+\newcommand{\CourseTitle}{ECSE 429: Software Validation}
+\newcommand{\ProjectTitle}{Project Part A}
+\newcommand{\ProjectSubtitle}{Exploratory Testing of REST API}
+\newcommand{\SubmissionDate}{October 20, 2026}
+\newcommand{\GroupNumber}{3}
+% All IDs verified against page 1 of the current session-note PDFs.
+\newcommand{\TeamRoster}{%
+  James Helou & 261177052\\
+  Jeffrey Lim & 261146821\\
+  Mahan Maalekian & 261175419\\
+  Matthew Petruzziello & 261140144}
+
+% Shared artifact links keep the submission table and references consistent.
+% Paths are relative to this report in the ZIP's Report & Documents/ folder.
+\newcommand{\MainReportLink}{%
+  \href{ECSE429_PartA_Group3_Report.pdf}%
+  {\Path{ECSE429_PartA_Group3_Report.pdf}}}
+\newcommand{\BugSummaryLink}{%
+  \href{Bug Summary - ECSE 429 Part A - Group 3.pdf}%
+  {\Path{Bug Summary - ECSE 429 Part A - Group 3.pdf}}}
+\newcommand{\CapabilityInventoryLink}{%
+  \href{ECSE429_PartA_Group3_CapabilityInventory.pdf}%
+  {\Path{ECSE429_PartA_Group3_CapabilityInventory.pdf}}}
+\newcommand{\UnitTestVideoLink}{%
+  \href{../Videos/ECSE429_PartA_Group3_UnitTests.mp4}%
+  {\Path{Videos/ECSE429_PartA_Group3_UnitTests.mp4}}}
+\newcommand{\NotesRef}[1]{%
+  \hyperref[ref:session-#1]{S#1 session notes~[\ref*{ref:session-#1}]}}
+\newcommand{\BugSummaryRef}{%
+  \hyperref[ref:bug-summary]{bug summary~[\ref*{ref:bug-summary}]}}
+\newcommand{\SessionNotesFolder}{%
+  \href{../Session\%20Notes/}{\Path{Session Notes/}}}
+\newcommand{\SessionScriptsFolder}{%
+  \href{../Session\%20Scripts/}{\Path{Session Scripts/}}}
+\newcommand{\SuiteFolder}{\href{../testsuite/}{\Path{testsuite/}}}
+\newcommand{\ArtifactFile}[2]{%
+  \href{#1}{{\fontsize{10.5bp}{12.2bp}\selectfont\nolinkurl{#2}}}}
+
+\begin{document}
+\ReportCover
+\setcounter{page}{1}
+
+% ===================== BODY PAGE 1: DELIVERABLES =====================
+\ReportSection{1. Summary of Deliverables}
+
+\ReportSubsection{1.1 Project Objective and Scope}
+We explored Todo Manager 1.5.5, a REST API for managing todos, projects, categories,
+and the relationships between them. We used eight exploratory sessions, each
+timeboxed at 45 minutes, and built Java unit tests from the capabilities and
+concerns we identified. Our exploration found inconsistencies in relationship
+queries, deletion cleanup, and malformed-input handling. The session notes and
+bug summary record these findings, along with potential bugs that need retesting
+or clarification of the expected behaviour before we can classify them as defects.
+
+\ReportSubsection{1.2 Submission Package}
+\begin{ReportTable}{@{}P{.25\linewidth}Y@{}}
+  \toprule
+  \textbf{Deliverable} & \textbf{Location and role}\\
+  \midrule
+  Main report PDF &
+  \MainReportLink\ in \Path{Report & Documents/}.
+  Summarises our exploration, test suite, submission package, results, and AI use.\\
+  Session-note PDFs &
+  \SessionNotesFolder:
+  eight PDFs for S1--S8, containing observations, findings, concerns, and new test ideas.\\
+  Scripts and evidence &
+  \SessionScriptsFolder:
+  seven Python demonstrations for S1, S2, and S4--S8.
+  S3's Postman requests are recorded in its session notes.\\
+  Unit-test suite &
+  \SuiteFolder:
+  our Java tests using JUnit 5 and REST Assured, with the Maven configuration
+  and wrapper needed to run them.\\
+  Bug summary &
+  \BugSummaryLink\ in \Path{Report & Documents/}.
+  Entries BR01--BR33 describe findings, impact, and reproduction steps.
+  BR30--BR33 flag potential bugs needing retesting or clearer expected behaviour.\\
+  Capability inventory &
+  \CapabilityInventoryLink\ in \Path{Report & Documents/}.
+  Maps documented and discovered capabilities to session evidence,
+  demonstrations, and Java test modules.\\
+  Unit-test video &
+  \UnitTestVideoLink.
+  Demonstrates suite execution and pseudorandom test ordering.\\
+  \bottomrule
+\end{ReportTable}
+
+\ReportSubsection{1.3 Reading the Evidence}
+We use session and observation numbers to connect our findings to the requests
+or scripts, bug-summary entries, and corresponding unit tests. This report
+summarises that work, while the separate notes, scripts, and bug records provide
+the detailed steps and observations.
+
+\ReportSubsection{1.4 Team Participation}
+James handled the project setup and S4, S7, and S8. Jeffrey completed S1 and S2
+and wrote the todo tests. Mahan completed S3 and wrote the project tests.
+Matthew completed S5 and S6, wrote the category tests, and was responsible for
+the unit-test video. We all worked on the report together.
+
+% ===================== BODY PAGE 2: EXPLORATION METHOD ================
+\NewContentPage
+\ReportSection{2. Exploratory Testing Method}
+
+\ReportSubsection{2.1 Exploratory Testing Charter}
+\begin{Charter}
+Identify capabilities and areas of potential instability of the
+\textquotedblleft rest api todo list manager\textquotedblright.
+
+Identify documented and undocumented
+\textquotedblleft rest api todo list manager\textquotedblright\ capabilities.
+
+For each capability, create a script or small program to demonstrate
+the capability.
+
+Exercise each capability identified with data typical to the intended
+use of the application.
+\end{Charter}
+
+\RunIn{Session approach}
+We divided the exploration into sessions on resources and their relationships.
+Each session PDF records one participant and a 45-minute timebox. Across the
+sessions, we tried typical inputs as well as omitted fields, invalid IDs,
+different request formats, and different operation orders.
+
+We compared responses with the API documentation~[\ref{ref:api}] and used GET
+requests to check what was stored. In S1, we checked that full updates worked
+before comparing POST and PUT requests that left fields out
+(\NotesRef{1}, observations 4--7, pp.~2--3). For relationships, we checked the links
+from both objects. In S6, we compared plain XML, JSON, and XML CDATA for the same
+target, removing the link after each successful request so that the next format
+was tested on an unlinked pair (\NotesRef{6}, observation 14, p.~4).
+
+Our notes record what we tried and expected, what we observed, the capabilities
+we exercised, the risks we identified, and the decisions we made. We then
+reviewed our findings and follow-up ideas.
+Figure~\ref{fig:session-evidence} reads from top to bottom: the charter guides the
+sessions, notes and demonstrations record the evidence, and selected concerns
+and findings inform bug records and tests.
+
+\begin{center}
+  \includegraphics[width=\linewidth]{images/session-evidence-traceability.png}
+  \captionof{figure}{How exploration informs supporting records and tests.
+  Arrow labels describe each relationship. BR30--BR33 are potential bugs
+  needing retesting or clearer expected behaviour.}
+  \label{fig:session-evidence}
+\end{center}
+
+\NewContentPage
+\ReportSubsection{2.2 Session Coverage and Participation}
+% Keep the final sentence on this page without changing the text or font size.
+\enlargethispage{\baselineskip}
+We used eight sessions to explore todos, projects, categories, and their
+interoperability. S1--S6 covered creating, reading, updating, and deleting
+resources (CRUD), along with the routes used to link them. S7 examined deletion
+across linked objects, while S8 explored malformed todo requests and invalid
+operations.
+
+% Links retain the exact filenames in the current submission, including S3's spelling.
+\begin{ReportTable}{@{}P{.05\linewidth}P{.22\linewidth}YP{.13\linewidth}P{.14\linewidth}@{}}
+  \toprule
+  \textbf{ID} & \textbf{Participant} & \textbf{Focus} & \textbf{Session date} & \textbf{Note reference}\\
+  \midrule
+  S1 & Jeffrey Lim & Todo CRUD, field validation, JSON/XML, and invalid input.
+     & 17 Oct 2026 & \NotesRef{1}, pp.~1--5\\
+  S2 & Jeffrey Lim & Todo links to projects and categories; reads, writes, and unlinking.
+     & 17 Oct 2026 & \NotesRef{2}, pp.~1--6\\
+  S3 & Mahan Maalekian & Project CRUD, validation, task linking, and deletion.
+     & 18 Oct 2026 & \NotesRef{3}, pp.~1--3\\
+  S4 & James Helou & Project task and category links; queries, linking, and unlinking.
+     & 12 Oct 2026 & \NotesRef{4}, pp.~1--4\\
+  S5 & Matthew Petruzziello & Category CRUD, validation, filters, formats, and routing.
+     & 12 Oct 2026 & \NotesRef{5}, pp.~1--8\\
+  S6 & Matthew Petruzziello & Category links to todos and projects; formats and deletion cleanup.
+     & 18 Oct 2026 & \NotesRef{6}, pp.~1--7\\
+  S7 & James Helou & Links across resources and deletion of related objects.
+     & 12 Oct 2026 & \NotesRef{7}, pp.~1--3\\
+  S8 & James Helou & Malformed JSON/XML todo requests, unsupported verbs, and invalid operations.
+     & 12 Oct 2026 & \NotesRef{8}, pp.~1--4\\
+  \bottomrule
+\end{ReportTable}
+
+\RunIn{Reading the session records}
+The first page of each PDF lists the participant's full name, student ID, and
+student email address, along with the charter, scope, solo participation, and
+timebox. The table lists the dates when the sessions took place.
+Each note reference points to a separate PDF in
+\SessionNotesFolder\ in the submission ZIP. Section~8 gives the exact filenames;
+page references count from the first page of each PDF.
+
+\RunIn{Demonstrations and follow-up}
+We supplied seven Python demonstrations in \SessionScriptsFolder\ for S1, S2,
+and S4--S8. For S3, the Postman requests are recorded in \NotesRef{3}
+(pp.~1--3). NOTE: no separate collection or request export is included.
+
+We collected our findings and concerns in the \BugSummaryRef,
+supplied as \BugSummaryLink\ in \Path{Report & Documents/}.
+It contains 33 records. BR30--BR33 (p.~6) are potential bugs that need further
+checks before we can classify them as defects. BR30 needs clarification of what
+the documentation allows. BR31--BR32 need reads before and after PUT to check
+which fields or links remained stored, and BR33 needs retesting to explain
+why the sessions recorded different results.
+
+We used selected observations to develop tests in \SuiteFolder.
+For example, the XML comparison in \NotesRef{6}, observation 14 (p.~4),
+appears as BR06 in the \BugSummaryRef\ (p.~2).
+The category--project
+\href{../testsuite/src/test/java/ca/mcgill/ecse429/group3/categories/item/projects/PostXmlExpectedTest.java}{XML expected-behaviour}
+and
+\href{../testsuite/src/test/java/ca/mcgill/ecse429/group3/categories/item/projects/PostXmlObservedTest.java}{observed-behaviour tests}
+check the documented and observed results separately.
+
+% ===================== BODY PAGE 3: EXPLORATORY FINDINGS ===============
+\NewContentPage
+% Findings are supported by the session PDFs and scripts.
+\ReportSection{3. Findings of Exploratory Testing}
+% Check the requested page budget during compilation without printing extra text.
+\edef\FindingsFirstPage{\number\value{page}}
+
+\ReportSubsection{3.1 What We Learned in Each Session}
+Ordinary CRUD generally worked. However, relationship reads, deletion, and parsing
+needed closer checks. Numbers identify observations in the linked notes.
+Follow-ups reflect session ideas and remaining checks. Some were explored later.
+\begin{ReportTable}{@{}P{.06\linewidth}YYY@{}}
+  \toprule
+  \textbf{ID} & \textbf{Findings / capabilities} & \textbf{Concerns / risks} & \textbf{New testing ideas}\\
+  \midrule
+  \hyperref[ref:session-1]{S1 [\ref*{ref:session-1}]} &
+  JSON/XML reads worked. POST kept omitted fields. PUT reset them (7, 9). &
+  Boolean output strings cannot be reused directly as input (2, 8). &
+  Compare null/omitted XML fields and allocation after other failures or restart.\\
+  \hyperref[ref:session-2]{S2 [\ref*{ref:session-2}]} &
+  Project links worked both ways. Selective unlinking preserved objects (2, 8--9). &
+  Missing-todo reads returned unrelated targets. Category links were one-way (5, 7). &
+  Try negative/deleted todo IDs, XML link bodies, and reverse-side category unlinking.\\
+  \hyperref[ref:session-3]{S3 [\ref*{ref:session-3}]} &
+  Project GET/DELETE returned 200. POST \texttt{\{\}} created a blank project (1--2, 7). &
+  PUT storage is unconfirmed. Task-link rejection conflicts with S4 (4--5). &
+  Replay PUT with before/after GETs. Vary XML, filters, and text length.\\
+  \hyperref[ref:session-4]{S4 [\ref*{ref:session-4}]} &
+  Task linking was reciprocal. Unlinking kept the todo (3, 8). &
+  Missing-project reads returned both projects' tasks (6). &
+  Try negative/large project IDs, ID-plus-title precedence, and links after restart.\\
+  \hyperref[ref:session-5]{S5 [\ref*{ref:session-5}]} &
+  JSON/XML creation and exact, case-sensitive filters worked (2, 10). &
+  Encoded-slash ID returned the collection. Weighted Accept returned 404 (9, 20). &
+  Vary path encodings, Unicode filters, array coercion, and item/HEAD Accept.\\
+  \hyperref[ref:session-6]{S6 [\ref*{ref:session-6}]} &
+  String-ID linking and selective unlinking preserved shared targets (2--8). &
+  Missing-parent reads included unrelated targets. Plain XML IDs failed unlike JSON/CDATA (9, 14). &
+  Vary XML ID whitespace/escapes and deletion/unlink order with multiple links.\\
+  \hyperref[ref:session-7]{S7 [\ref*{ref:session-7}]} &
+  Todo/project deletion cleaned task links and preserved other objects (1--2). &
+  A deleted category remained in a todo's list. Deleted-project task reads used the wrong key (3--4). &
+  Create a replacement category. Delete a todo linked to both project and category.\\
+  \hyperref[ref:session-8]{S8 [\ref*{ref:session-8}]} &
+  Valid JSON/XML created todos. Malformed-input results varied by syntax (1--7). &
+  Unquoted keys succeeded. JSON parser errors exposed classes and mismatched media types (2--5). &
+  Try long titles, deep nesting, missing Content-Type, and XML Accept on errors.\\
+  \bottomrule
+\end{ReportTable}
+
+\ReportSubsection{3.2 Capabilities and Demonstration Scripts}
+Our
+\hyperref[ref:capabilities]{capability inventory~[\ref*{ref:capabilities}]}
+maps the 127 method/route contracts from 19 Swagger route templates to Java modules
+for Section~4. It also records discovered behaviours, script inputs, and effects.
+The API reference~[\ref{ref:api}] provides \Path{/docs} and \Path{/docs/swagger}
+for documentation discovery. Examples follow.
+
+\begin{ReportTable}{@{}P{.25\linewidth}P{.18\linewidth}Y@{}}
+  \toprule
+  \textbf{Capability / API} & \textbf{Status and source} & \textbf{Typical-data demonstration}\\
+  \midrule
+  POST \Path{/todos} &
+  Documented in the API reference. &
+  \Path{S1_todo_crud.py}, C2--C2b (S1, 2):
+  Create with ``Buy groceries'', ``Milk and bread'', and false.
+  Then GET the returned ID to check stored values.\\
+  POST \Path{/categories/:id/todos} &
+  Documented in the API reference. &
+  \Path{S6_category_relationships.py}, block 2 (S6, 2):
+  Send the returned todo ID as a JSON string. The category lists the unchanged
+  target without creating another todo.\\
+  POST \Path{/projects/:id/tasks}, title-only body &
+  Undocumented creation behaviour (S4, 7). &
+  \Path{S4_project_relationships.py}, E8--E8b:
+  Omit the ID and supply a title. A new todo is created and linked.
+  Compare the todo collection before and after.\\
+  \bottomrule
+\end{ReportTable}
+The inventory distinguishes documented capabilities, additional behaviours, and
+Java follow-up checks. However, a source mapping does not establish a passing test.
+
+\ReportSubsection{3.3 Tester Decisions and Areas of Risk}
+\RunIn{Use populated controls}
+An empty category list did not show whether the project existed
+(\NotesRef{4}, 2, p.~1). Populated parents exposed unrelated targets. Therefore,
+we kept different linked lists and direct GET controls
+(\NotesRef{6}, 9, p.~3, and \Path{S6_category_relationships.py}, block 9).
+Status alone would have missed the wrong data.
+
+\RunIn{Check deletion from both sides}
+We restarted S7's scenarios to isolate deletions
+(\NotesRef{7}, 6, p.~2, and \Path{S7_interoperability_delete.py}, \Path{restart()}).
+In S6, unlinking one direction left the reverse link intact. Therefore, we decided
+to unlink both directions before deleting temporary objects
+(\NotesRef{6}, 7, p.~3, and \Path{S6_category_relationships.py}, block 7).
+
+\RunIn{Change one input at a time}
+We compared plain XML, JSON, and CDATA for the same ID. We unlinked between successes
+(\NotesRef{6}, 14, p.~4, and
+\Path{S6_category_relationships.py}, block 12).
+Only plain XML failed. Therefore, we kept separate format checks. The cause remains unknown.
+
+\ReportSubsection{3.4 Confirmed Bugs and Open Questions}
+\RunIn{Confirmed discrepancies}
+The \BugSummaryRef\ gives reproduction steps. Its most consequential discrepancies
+are below. Page numbers refer to that PDF.
+\begin{ReportTable}{@{}P{.16\linewidth}P{.34\linewidth}Y@{}}
+  \toprule
+  \textbf{Record / page} & \textbf{Expected behaviour} & \textbf{What we observed and why it matters}\\
+  \midrule
+  BR01, p.~1 & Relationship reads stay scoped to their named parent. &
+  Missing parents returned 200 and unrelated targets. The exact missing-parent
+  status is unspecified. Returning another parent's data is the discrepancy.\\
+  BR02, p.~1 & A project's task response uses the \Path{todos} field. &
+  After deletion, \Path{projects} replaced \Path{todos}. Therefore, clients could miss the list.\\
+  BR04--BR05, p.~1 & Deleted objects stop appearing as live related records. &
+  Direct GET returned 404. However, one-way links still returned full deleted records.
+  BR05 also showed the deleted target beside its replacement.\\
+  BR06, p.~2 & Equivalent JSON/XML IDs identify the same existing target. &
+  Plain XML returned 404. However, JSON strings and CDATA returned 201 for the same ID.\\
+  BR12, p.~3 & Swagger specifies 405 for GET/HEAD/POST on individual link paths. &
+  Existing category links returned 404, making an unsupported method look like
+  a missing link.\\
+  BR14--BR15, p.~3 & A JSON-acceptable read works. An item lookup stays scoped. &
+  An Accept list allowing JSON returned 404. JSON alone returned 200.
+  \texttt{/categories/\%2F} returned the collection.\\
+  \bottomrule
+\end{ReportTable}
+Some JSON parse errors exposed Java classes and returned JSON-shaped bodies labelled
+\Path{text/html} (BR07--BR08, p.~2).
+
+\RunIn{Other observations and documentation gaps}
+The 33 records are not all confirmed defects. The documentation does not clearly
+require category links to work both ways (BR03, p.~1) or specify what repeated
+link POSTs should return (BR16, p.~3). Inline creation adds a capability
+(BR17, p.~3). Optional titles allow blank projects (BR18, p.~4). Numeric IDs,
+filters, omitted PUT fields, and null amendments need clearer rules
+(BR19--BR23, p.~4). BR29 (p.~5) is a documentation gap: category relationship
+POSTs safely return 404 for a missing parent, but Swagger omits that response.
+
+\RunIn{Open questions and untested concerns}
+BR30--BR33 (p.~6) need confirmation. Supplied-ID rejection may be valid. Project
+PUT needs before/after scalar and relationship reads. Additionally, S3's task-link 400 conflicts
+with S4's 201. Encoded-slash writes remain untested (\NotesRef{5}, 9, p.~4).
+\par
+
+% ===================== BODY PAGE 4: SUITE STRUCTURE ===================
+\NewContentPage
+% Check after flushing Section 3, so a pending page break cannot hide overflow.
+\ifnum\value{page}>\numexpr\FindingsFirstPage+2\relax
+  \PackageError{report}{Section 3 exceeds the requested two pages}%
+    {Shorten Section 3 before recompiling.}
+\fi
+\ReportSection{4. Structure of the Unit-Test Suite}
+\edef\SuiteFirstPage{\number\value{page}}
+\newcommand{\TestSource}[1]{%
+  \href{../testsuite/src/test/java/ca/mcgill/ecse429/group3/#1}{\Path{#1}}}
+
+\begin{center}
+  \includegraphics[width=\linewidth]{images/unit-test-architecture.png}
+  \captionof{figure}{Suite dependencies and report output. Domain and shutdown
+  tests use separate, externally started Todo Manager processes. The JDK client is used for
+  category POST controls that omit Content-Type.}
+  \label{fig:test-architecture}
+\end{center}
+
+\ReportSubsection{4.1 Module Organisation and API Coverage}
+We target Java 17 and use the open-source JUnit Jupiter framework (5.11.3) for one suite.
+REST Assured 5.5.0 sends HTTP requests to the running application, and Maven
+Surefire 3.5.2 runs the tests and writes the results (Figure~\ref{fig:test-architecture}).
+All Java paths below start at \Path{testsuite/src/test/java/ca/mcgill/ecse429/group3/}.
+
+\RunIn{Modules}
+Our packages follow the routes. For example, \Path{todos/allTodos/} covers
+\Path{/todos}, \Path{projects/item/tasks/} covers a project's task list, and
+\Path{categories/item/projects/item/} covers an individual category--project link.
+Each verb has its own module, such as \Path{GetTest.java} or \Path{DeleteTest.java}.
+Our \hyperref[ref:capabilities]{capability inventory~[\ref*{ref:capabilities}]}
+lists all 127 Swagger method--route contracts, their test packages and verb
+modules, and the additional behaviours found during exploration.
+These include inline creation, encoded-slash routing, TRACE, and BREW.
+Shutdown has separate \Path{shutdown/GetExpectedTest.java} and
+\Path{shutdown/GetObservedTest.java} modules. We select the
+\Path{isolated-shutdown} profile and one fully qualified \Path{-Dtest} class
+at a time.
+
+\RunIn{Expected and observed behaviour}
+We keep discrepancies in separate modules so that a working alternative does
+not hide a failed expectation. The XML comparison in \NotesRef{6}
+(observation 14, p.~4) is BR06 in the \BugSummaryRef\ (p.~2).
+The category--project
+\TestSource{categories/item/projects/PostXmlExpectedTest.java} expects plain XML
+to link the same target as JSON and CDATA, returning 201. The separate
+\TestSource{categories/item/projects/PostXmlObservedTest.java} checks the
+observed 404 with unchanged state, followed by successful JSON and CDATA links.
+We unlink between formats and check that the original state is restored, so an
+existing link cannot explain the next result. A failed expectation remains an
+assertion failure in Surefire.
+
+\NewContentPage
+\ReportSubsection{4.2 Test Lifecycle and Correctness}
+\RunIn{Readiness and initial conditions}
+\TestSource{utilities/ProjectTestSetup.java} reads all three collections in
+\Path{@BeforeEach} and saves their records and relationship references through
+\Path{ApiStateSnapshot}. A missing service fails setup.
+\Path{SetupTestUtilities} prepares and tracks temporary records and links, so
+tests do not depend on data left by an earlier test.
+
+\RunIn{Assertions and side effects}
+We check status codes against the API documentation where specified, then check
+stored fields, collection membership, and links from the relevant directions.
+\Path{ApiStateSnapshot.assertUnchangedExcept} excludes the records whose changes
+are checked separately and compares the remaining visible data. The comparison
+ignores list order while retaining duplicates and scalar types. Therefore, an
+extra relationship or a changed unrelated record still causes a failure.
+The BR06 modules above show this check alongside their response assertions.
+
+\RunIn{Restoration after failure}
+\Path{@AfterEach} runs cleanup and the initial-state comparison inside
+\Path{assertAll}, including after an assertion fails. Owned links are removed
+before owned records, in reverse order. Cleanup accepts 200 or 404, so an object
+already deleted by the test does not prevent the remaining cleanup attempts.
+The final snapshot checks visible restoration. It does not reset the internal
+ID allocator. Shutdown uses \TestSource{shutdown/IsolatedShutdownTestSetup.java}
+to verify the disposable target's process, port, and marker. External setup
+provides a fresh target for each shutdown module.
+
+\RunIn{Formats and invalid operations}
+JSON/XML output checks cover resource and relationship reads, along with
+resource creation and updates. Accept selects output separately from the
+request Content-Type.
+For example, \TestSource{todos/item/PutXmlResponseTest.java} compares the XML
+update response with the stored todo. HEAD and OPTIONS check empty bodies.
+Negative cases include unsupported verbs, invalid fields, and missing IDs.
+Additionally,
+\TestSource{categories/allCategories/PostMalformedExpectedTest.java} requires
+400, unchanged data, and JSON Content-Type for the sampled malformed JSON/XML
+bodies (BR07). Its companion \Path{PostMalformedObservedTest.java} checks the
+actual \Path{text/html} label, parsed error messages, and unchanged state.
+\TestSource{todos/item/DeleteTest.java} also deletes a todo twice and checks
+that the second DELETE returns 404 without changing other data.
+
+\RunIn{Execution and code structure}
+We run these commands from \Path{testsuite/}, with Todo Manager started separately.
+The first and third selections passed with Todo Manager 1.5.5 launched using
+\Path{-version=4}. The second includes the failing expectations. The
+\Path{expected-behavior} tag identifies the intended result, so tagged tests can
+still pass. The default domain run includes these expectations and excludes shutdown.
+\begin{lstlisting}
+sh ./mvnw test '-Dgroups=!expected-behavior & !isolated-shutdown'
+sh ./mvnw test -Dgroups=expected-behavior
+sh ./mvnw test '-Dgroups=characterization | observed-behavior'
+\end{lstlisting}
+\Path{src/test/resources/junit-platform.properties} randomises both classes and
+methods, with parallel execution disabled. Appending
+\Path{'-Djunit.jupiter.execution.order.random.seed=1'} replays an order.
+Fixture and parsing helpers avoid duplicated setup and parsing code.
+\Path{categories/CategoryRelationshipDeletionTestSetup.java} separates scenario
+creation, deletion, and verification into named helpers. Surefire writes XML
+results to \Path{target/surefire-reports/} and prints class results to the console.
+We also checked literal curl queries using \Path{--get --data-urlencode}.
+% Exact commands, output, JSON/XML assertions and restoration:
+% docs/project-part-a/section4-evidence/tag-verification/current-cli-query-evidence.json
+Filtering by title and \Path{doneStatus} selected only the temporary todo.
+An unmatched title returned an empty list. The before/after collections matched
+after cleanup.
+The seven Python scripts in \SessionScriptsFolder\ provide the exploratory
+command-line demonstrations.
+\par
+\ifnum\value{page}>\numexpr\SuiteFirstPage+1\relax
+  \PackageError{report}{Section 4 exceeds the requested two pages}%
+    {Shorten Section 4 before recompiling.}
+\fi
+
+% ===================== BODY PAGE 5: SUBMISSION PACKAGE ================
+\NewContentPage
+\ReportSection{5. Submission Package and Reproduction}
+\edef\PackageFirstPage{\number\value{page}}
+
+\ReportSubsection{5.1 Package Structure}
+Our source repository keeps the session records, demonstration scripts, and
+Java suite together. The ZIP contents are shown below.
+\begin{lstlisting}
+README.md              Setup and reproduction instructions
+Report & Documents/    Report, bug summary, capability inventory
+Session Notes/          Eight session-note PDFs
+Session Scripts/        Seven Python demonstrations
+testsuite/              Java sources, Maven wrapper and configuration
+Videos/                 Unit-test demonstration
+\end{lstlisting}
+Within \SuiteFolder, \Path{pom.xml} declares the build and dependencies,
+\Path{.mvn/wrapper/} pins Maven, and \Path{src/test/} contains the tests,
+shared support, and JUnit ordering settings. The README gives the full run
+instructions, including preparation for the two isolated shutdown tests.
+
+\ReportSubsection{5.2 Environment and Reproduction}
+Use JDK 17 or newer. The wrapper downloads Maven 3.9.9 and the test dependencies.
+Our recorded checks used Eclipse Adoptium JDK 21.0.12 on macOS 27.0.1 (aarch64).
+Start the separately supplied Todo Manager 1.5.5 JAR before running Maven.
+\Path{-version=4} selects the behaviour labelled \Path{v3} at startup.
+\begin{lstlisting}
+# Terminal 1: from the folder containing the supplied JAR
+java -jar runTodoManagerRestAPI-1.5.5.jar -port=4567 -version=4
+# Terminal 2: from the folder containing README.md
+cd testsuite
+sh ./mvnw clean test '-Djunit.jupiter.execution.order.random.seed=1'
+sh ./mvnw clean test '-Djunit.jupiter.execution.order.random.seed=2'
+\end{lstlisting}
+In PowerShell, replace \Path{sh ./mvnw} with \Path{.\mvnw.cmd}.
+Both classes and methods run in pseudorandom order. Reusing a seed and test
+selection repeats that order. We keep expected-behaviour assertions enabled,
+so API discrepancies produce failures. These domain runs exclude shutdown.
+Section~4 gives the separate test selections.
+
+Surefire prints results and writes XML to
+\Path{testsuite/target/surefire-reports/}. Save each run's output before the next
+\Path{clean}, which removes it. API documentation is available at
+\url{http://localhost:4567/docs} while the service runs.
+
+\RunIn{Session demonstrations}
+The scripts use Python 3.9 or newer and the standard library. From the folder
+containing the README, for example, run:
+\begin{lstlisting}
+python3 "Session Scripts/S6_category_relationships.py" --block 1
+\end{lstlisting}
+S5 and S6 accept \Path{--block N} to select one block. S7 and S8 also need the
+JAR path as an argument and restart the service, resetting its data. Run scripts
+and the suite separately so their changes do not overlap. S3's Postman requests
+are in its session PDF, and the bug summary gives individual reproduction steps.
+\par
+
+% ===================== BODY PAGE 6: EXECUTION / VIDEO =================
+\NewContentPage
+% Check after flushing Section 5, including its final paragraph.
+\ifnum\value{page}>\numexpr\PackageFirstPage+1\relax
+  \PackageError{report}{Section 5 exceeds the requested one page}%
+    {Shorten Section 5 before recompiling.}
+\fi
+\ReportSection{6. Findings of Unit-Test Execution}
+
+\ReportSubsection{6.1 Recorded Results}
+We ran the suite on October 20, 2026 using the unchanged repository revision
+\Path{97208d8}. We used the environment in Section~5.2 and Todo Manager 1.5.5
+with \Path{-version=4}, which starts the \Path{v3} profile.
+For these checks, we started a separate process on port 4579.
+Maven used \Path{-Dapi.baseUri=http://127.0.0.1:4579} and the seeds shown below.
+The default runs kept our intended-behaviour assertions enabled.
+% Fresh primary-source index and exact commands, including offline/cache flags:
+% docs/project-part-a/section6-evidence/README.md
+% full-seed1.json, full-seed2.json and their archived Surefire XML directories.
+\begin{ReportTable}{@{}P{.29\linewidth}P{.12\linewidth}P{.12\linewidth}P{.12\linewidth}P{.10\linewidth}Y@{}}
+  \toprule
+  \textbf{Selection / seed} & \textbf{Executed} & \textbf{Passed} &
+  \textbf{Failed} & \textbf{Errors} & \textbf{Skipped}\\
+  \midrule
+  Default / 1 & 917 & 753 & 164 & 0 & 0\\
+  Default / 2 & 917 & 753 & 164 & 0 & 0\\
+  Exclusion / 1 & 707 & 707 & 0 & 0 & 0\\
+  Expected / 2 & 210 & 46 & 164 & 0 & 0\\
+  Observed / 2 & 377 & 377 & 0 & 0 & 0\\
+  \bottomrule
+\end{ReportTable}
+The table counts test invocations, including parameterized inputs.
+The number after each selection is the pseudorandom ordering seed.
+Default runs all domain tests from 256 classes. Exclusion removes tests tagged
+\Path{expected-behavior}. Expected selects that tag. Observed selects
+\Path{characterization} or \Path{observed-behavior}, which check the API
+behaviour we recorded. The filtered rows rerun parts of Default, so their
+counts are not additional coverage. Section~4.2 gives the commands.
+
+The Failed column counts invocations with an unmet assertion.
+We keep our intended expectations, so known discrepancies still count as failures.
+Errors counts other problems running a test, such as uncaught exceptions.
+Skipped counts disabled or aborted tests. All selected invocations produced
+passes or assertion failures. Errors does not count HTTP error responses.
+The POM excludes shutdown, so those two tests are not counted as skipped.
+We saved console output and Surefire XML before later runs overwrote the reports.
+
+Tests in Expected pass when the API meets our expectations. Of the 46 passing invocations,
+44 checked rejection of unsupported methods and two checked task reads after
+project deletion.
+
+The same 164 invocations failed in both default runs. Their unmet expectations
+include documented responses, relationship scoping and deletion, our policy of
+hiding internal Java class names, and the unresolved BR30 supplied-ID hypothesis.
+Therefore, 164 failed invocations do not mean 164 separate bugs or proven
+documentation violations. Passing Observed checks reproduce the recorded
+responses and stored effects. They do not show that a failed expectation has been fixed.
+
+\RunIn{Malformed requests}
+The category \Path{PostMalformedObservedTest} checks passed for the sampled
+malformed JSON and XML bodies. They confirmed 400, parsed error messages, and
+unchanged state. However, the matching media-type expectations failed because
+the JSON-shaped error bodies were labelled \Path{text/html} (BR07).
+Hiding the exposed Java class names is our separate quality expectation (BR08).
+
+\RunIn{Isolated shutdown}
+On separate disposable instances,
+\TestSource{shutdown/GetObservedTest.java} passed its one invocation.
+\Path{GetExpectedTest.java} failed its one invocation because the connection
+closed without the documented HTTP 200. Both processes stopped and their ports
+closed. Our first attempts also timed out during the process-exit check because
+the external launcher had not collected the stopped process's exit status.
+Correcting the launcher removed these timeouts. The test sources were unchanged.
+
+\NewContentPage
+\ReportSubsection{6.2 Readiness, Order Independence, and Side Effects}
+\RunIn{Readiness}
+We deliberately pointed \TestSource{todos/allTodos/GetTest.java} at the unused
+port 4581 with \Path{-Dapi.baseUri=http://127.0.0.1:4581}. All 12 invocations
+failed during setup with an instruction to start Todo Manager at that address.
+There were no errors or skips. This checks the shared readiness failure through
+one module.
+
+\RunIn{Order and state}
+Both seeds produced the same result for every invocation, although the console
+showed different class orders. Seed~1 began with project task scope tests and
+seed~2 with todo category scope tests. Classes and methods use pseudorandom
+ordering. Parameterized inputs still follow their provider's order. This supports
+independence only under the two tested orders.
+Before/after snapshots matched for both full runs. Teardown checked restoration
+after each test, including those that failed. The BR06 checks also compared
+stored links and removed any created link before trying the next format. This
+kept an earlier successful request from hiding a failed creation. These comparisons cover visible records and
+relationship references. They do not restore the ID counter or verify hidden state.
+
+\ReportSubsection{6.3 Bug Summary and Remaining Risks}
+The following examples connect the execution results to the session findings
+and the \BugSummaryRef. Their expected-behaviour checks failed, while the
+companion observed-behaviour checks passed.
+\begin{ReportTable}{@{}P{.13\linewidth}P{.44\linewidth}Y@{}}
+  \toprule
+  \textbf{Record} & \textbf{Execution finding and consequence} & \textbf{Session / module example}\\
+  \midrule
+  BR01, p.~1 & Missing parents returned unrelated targets with 200. The scope
+  check does not require an undocumented 404 response. Clients could display
+  another parent's records. &
+  \NotesRef{6}, 9, p.~3. Category--project
+  \Path{GetScopeExpectedTest} / \Path{GetScopeObservedTest}.\\
+  BR04, p.~1 & Incoming-only links to a deleted category still returned its
+  full record after direct GET returned 404. Clients could continue displaying
+  deleted categories. &
+  \NotesRef{6}, 19, p.~6. Category
+  \Path{DeleteRelationshipsExpectedTest} / \Path{DeleteRelationshipsObservedTest}.\\
+  BR06, p.~2 & Plain XML returned 404 for an existing target. JSON and CDATA
+  linked that target with 201. Ordinary XML clients could fail to create the link. &
+  \NotesRef{6}, 14, p.~4. Category--project
+  \Path{PostXmlExpectedTest} / \Path{PostXmlObservedTest}.\\
+  BR12, p.~3 & Existing category-link GET/HEAD/POST returned 404 instead of
+  Swagger's 405. Clients could mistake an unsupported method for a missing link. &
+  \NotesRef{6}, 18, p.~5. Individual category--project link
+  \Path{GetExpectedTest} / \Path{GetObservedTest}.\\
+  \bottomrule
+\end{ReportTable}
+
+\RunIn{Follow-up of the project reports}
+The title-only PUT test in \TestSource{projects/item/PutObservedTest.java}
+reset the description to empty and both status fields to false. Stored reads
+showed that the task link was removed in both directions, while a second project's
+link to the same todo remained. This answers the BR31--BR32 storage questions
+for that request.
+\TestSource{projects/item/tasks/PostExpectedTest.java} linked an existing todo
+with 201 and verified both directions. It did not reproduce BR33 for its sampled
+request. The difference from S3 still needs to be explained.
+
+\RunIn{Overall assessment}
+We would prioritise relationship scoping and deletion because clients could
+receive unrelated or deleted records. However, the 33 bug records also contain
+documentation gaps and policy questions. BR30 still needs an authoritative rule
+on client-supplied IDs. The sampled project results do not establish every PUT
+or link-creation case.
+
+% ===================== BODY PAGE 7: AI DISCLOSURE =====================
+\NewContentPage
+\begingroup
+% Give this prose section clear block spacing without changing other sections.
+\setlength{\parskip}{0pt}
+\newcommand{\DisclosureHeading}[1]{%
+  \par\addvspace{12bp}%
+  \noindent\textbf{#1:}\par\nobreak\vspace{4bp}}
+\ReportSection{7. AI Assistance Disclosure}
+\vspace{10bp}
+
+\DisclosureHeading{AI Tools Used}
+We used Claude Code and Codex mainly to help us with repetitive work in the unit
+tests and project documents. We used these tools to set up the LaTeX format for our session notes,
+bug summary, and report, and to turn our rough session notes into shorter, clearer
+descriptions of what we tried and observed. We also used them to help draft and
+revise parts of the report. We explored the API ourselves and recorded the core
+observations in our session notes. For the unit tests, we used AI to help us map
+those findings and our bug summary to the test suite. We chose what we
+wanted to test and wrote pseudocode describing the steps and expected results.
+AI then helped us convert this into Java unit tests and organise the suite around
+the architecture we described, including separate tests for documented behaviour
+and the actual behaviour we observed when the two differed.
+
+We provided the API documentation, our existing session notes and scripts, and
+the Java test sources to AI, which used these materials to generate the
+capability inventory. We used the inventory to connect the
+capabilities discussed in Sections~3.2 and~4 to their supporting demonstrations
+and test modules.
+
+\DisclosureHeading{Verification of AI Output}
+To check that the AI-assisted code tested what we intended, we read through the
+unit tests and compared their setup, requests, and assertions with our pseudocode,
+the observations we recorded during our exploration, and the REST API documentation.
+We also ran the tests and checked
+the results against the behaviour we expected. For cases where the API behaved
+differently from the documentation, we checked both the assertions for the
+documented behaviour and the separate tests for the behaviour recorded in our
+session notes. For the written documents, we reviewed the revised wording against
+our original notes to make sure that shortening the text did not change what we
+had tried or observed. We also checked the tables, images, and LaTeX formatting
+to make sure that the documents displayed properly and compiled without errors.
+
+\DisclosureHeading{Strengths and Limitations}
+AI helped us save time by applying the same structure to similar test cases and
+formatting our documents consistently in LaTeX. Once we had worked out the
+observations, expected results, and test steps, it helped us repeat that
+implementation and formatting work across the project. However, it could
+also misunderstand an observation or generate a test with an incorrect
+expectation. A test compiling or passing does not show that it checks the right
+thing, so we still needed to read the code and check what each assertion was
+actually confirming. The same applied to our session notes: a clearer description
+still needed to match the original observation.
+
+\DisclosureHeading{Conclusion}
+Overall, we used AI mainly to handle the repetitive work involved in implementing
+our test ideas and preparing the project documents. We explored the API, made the
+core observations, and decided what needed to be tested. AI helped us turn those
+findings and our pseudocode into Java tests and readable documents, and we were
+still responsible for reviewing the final code, checking the results, and making
+sure that the written descriptions matched our work.
+\par
+\endgroup
+
+% ===================== BODY PAGE 8: REFERENCES ========================
+\NewContentPage
+\ReportSection{8. References and Supporting Artifacts}
+The artifact links use paths within the extracted submission ZIP, with this
+report in \Path{Report & Documents/}. Each session reference below identifies
+one PDF in \Path{Session Notes/}.
+% List labels supply brackets; cross-references return only the number.
+\begin{enumerate}[label={[\arabic*]},ref=\arabic*,leftmargin=2em,itemsep=3bp,topsep=3bp]
+  \item\label{ref:api} Todo Manager 1.5.5 REST API documentation, served locally
+    while the application is running:
+    \url{http://localhost:4567/docs} and
+    \url{http://localhost:4567/docs/swagger}.
+  \item\label{ref:session-1} Jeffrey Lim. S1: Todo CRUD.\\
+    \ArtifactFile{../Session Notes/SessionNotes_S1_Jeffrey_Lim.pdf}
+      {SessionNotes_S1_Jeffrey_Lim.pdf}.
+  \item\label{ref:session-2} Jeffrey Lim. S2: Todo relationships.\\
+    \ArtifactFile{../Session Notes/SessionNotes_S2_Jeffrey_Lim.pdf}
+      {SessionNotes_S2_Jeffrey_Lim.pdf}.
+  \item\label{ref:session-3} Mahan Maalekian. S3: Project CRUD.\\
+    \ArtifactFile{../Session Notes/SesssionNotes_S3_Mahan_Maalekian.pdf}
+      {SesssionNotes_S3_Mahan_Maalekian.pdf}.
+  \item\label{ref:session-4} James Helou. S4: Project relationships.\\
+    \ArtifactFile{../Session Notes/SessionNotes_S4_James_Helou_261177052.pdf}
+      {SessionNotes_S4_James_Helou_261177052.pdf}.
+  \item\label{ref:session-5} Matthew Petruzziello. S5: Category CRUD.\\
+    \ArtifactFile{../Session Notes/SessionNotes_S5_Matthew_Petruzziello.pdf}
+      {SessionNotes_S5_Matthew_Petruzziello.pdf}.
+  \item\label{ref:session-6} Matthew Petruzziello. S6: Category relationships.\\
+    \ArtifactFile{../Session Notes/SessionNotes_S6_Matthew_Petruzziello.pdf}
+      {SessionNotes_S6_Matthew_Petruzziello.pdf}.
+  \item\label{ref:session-7} James Helou. S7: Interoperability and deletion.\\
+    \ArtifactFile{../Session Notes/SessionNotes_S7_James_Helou_261177052.pdf}
+      {SessionNotes_S7_James_Helou_261177052.pdf}.
+  \item\label{ref:session-8} James Helou. S8: Malformed and invalid inputs.\\
+    \ArtifactFile{../Session Notes/SessionNotes_S8_James_Helou_261177052.pdf}
+      {SessionNotes_S8_James_Helou_261177052.pdf}.
+  \item\label{ref:bug-summary} Group 3. Bug summary, BR01--BR33.\\
+    \BugSummaryLink, in \Path{Report & Documents/}.
+  \item\label{ref:video} Group 3. Unit-test demonstration.\\
+    \UnitTestVideoLink.
+  \item\label{ref:capabilities} Group 3. Complete capability and demonstration inventory.\\
+    \CapabilityInventoryLink, in \Path{Report & Documents/}.
+    Lists documented methods, discovered behaviours, session/script evidence,
+    and the Java modules used in Section~4.
+\end{enumerate}
+
+% FINAL DRAFT AUDIT (not printed):
+% Resolve every Draft/Prompt; remove DraftNotice; replace figure placeholders.
+% Check claims against actual notes, scripts, tests, bug records, and video.
+% Keep the final report 5--10 pages. Verify actual submission timing separately.
+% Move only the final PDF into ecse-429-projectA when the user is ready.
+\end{document}

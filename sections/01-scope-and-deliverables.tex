@@ -1,0 +1,63 @@
+\ReportSection{1. Summary of Deliverables}
+\ReportSubsection{1.1 Project Objective and Scope}
+We tested Todo Manager 1.5.5 using stories about how a student organizes coursework
+and personal tasks. The API stores todos, projects, categories, and the links
+between them. In Part A, we explored these capabilities individually. In Part B,
+we used them together to test goals such as recording a task, adding it to a
+course project, and checking what work remains.
+
+\begin{ReportTable}{@{}P{.28\linewidth}P{.12\linewidth}Y@{}}
+\toprule
+\textbf{Measure} & \textbf{Count} & \textbf{Explanation}\\
+\midrule
+User stories & 20 & Goals covering todos, categories, projects, and their relationships.\\
+\textit{Scenario Outlines} & 72 & Normal, alternate, and error flows.\\
+Executed examples & 146 & One case for each row in the \textit{Examples} tables.\\
+Passed examples & 122 & Cases that met their acceptance criteria.\\
+Failed examples & 24 & Cases linked to nine findings in the bug report.\\
+Policy-related failures & 16 & A subset of the 24 failures, checking workflow rules the API does not clearly promise.\\
+\bottomrule
+\end{ReportTable}
+
+\ReportSubsection{1.2 Deliverables}
+\begin{ReportTable}{@{}P{.24\linewidth}Y@{}}
+\toprule
+\textbf{Deliverable} & \textbf{Location and role}\\
+\midrule
+Written report & Describes the story coverage, test suite, reproduction steps, execution results, and findings.\\
+Story test suite & \Path{ECSE429-Project-B/}: feature files, step definitions, shared helpers, setup code, dependency files, and the application JAR.\\
+Bug report & \Path{BUG_REPORT.md}: expected and actual behavior, potential impact, reproduction steps, and related story IDs.\\
+Execution records & \Path{Verification/}: Cucumber results, console logs, source hashes, and additional API checks. Section~8 lists the files used in this report.\\
+\bottomrule
+\end{ReportTable}
+
+\ReportSubsection{1.3 Connecting the Tests and Findings}
+\begin{center}
+\begin{tikzpicture}[node distance=10bp]
+\node[process,text width=.195\linewidth] (story)
+{\textbf{Story N}\\Feature and steps};
+\node[process,text width=.195\linewidth,right=of story] (example)
+{\textbf{Outline + row}\\One test case};
+\node[process,text width=.195\linewidth,right=of example] (result)
+{\textbf{JSON result}\\Outcome + cleanup};
+\node[process,text width=.195\linewidth,right=of result] (finding)
+{\textbf{Bug ID}\\Finding and steps};
+\draw[arrow] (story)--(example);
+\draw[arrow] (example)--(result);
+\draw[arrow] (result)--node[above,font=\fontsize{7bp}{8bp}\selectfont]{fail}(finding);
+\end{tikzpicture}
+\end{center}
+Source hashes identify the code used for the run. Bug IDs connect failed cases
+to their explanations in \Path{BUG_REPORT.md}.
+
+\ReportSubsection{1.4 Team Participation}
+\begin{ReportTable}{@{}P{.25\linewidth}P{.10\linewidth}P{.20\linewidth}Y@{}}
+\toprule
+\textbf{Member} & \textbf{Stories} & \textbf{Area} & \textbf{Other responsibilities}\\
+\midrule
+James Helou & 1--5 & Todos & Harness and shared steps\\
+Jeffrey Lim & 6--10 & Categories & Written report\\
+Mahan Maalekian & 11--15 & Interoperability & Integration and submission ZIP\\
+Matthew Petruzziello & 16--20 & Projects & Videos\\
+\bottomrule
+\end{ReportTable}

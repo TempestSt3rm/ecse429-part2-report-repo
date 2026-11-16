@@ -1,0 +1,52 @@
+\ReportSection{4. Structure of the Story Test Suite}
+\ReportSubsection{4.1 Feature Files and Step Definitions}
+Cucumber.js reads the feature files and matches their steps to JavaScript
+functions in \Path{steps/}. Each story has its own step-definition file. We put
+common fixture setup, response checks, and cleanup in \Path{steps/stepDefs.js}
+so that several stories can use the same steps. \Path{TestUtil.js} handles HTTP
+requests and record lookups, while Chai assertions check the responses and stored
+results.
+
+\begin{center}
+\begin{tikzpicture}[node distance=10bp]
+\node[process,text width=\dimexpr\linewidth-30bp\relax] (features)
+{\textbf{Feature files} --- user goals, \textit{Backgrounds}, \textit{Scenario Outlines}, Examples};
+\node[process,text width=\dimexpr\linewidth-30bp\relax,below=of features] (steps)
+{\textbf{Story steps and shared library} --- fixtures, requests, correctness assertions};
+\node[process,text width=\dimexpr\linewidth-30bp\relax,below=of steps] (helpers)
+{\textbf{TestUtil.js and setup.js} --- HTTP helpers, snapshots, readiness, restart, cleanup};
+\node[terminal,text width=\dimexpr\linewidth-30bp\relax,below=of helpers] (api)
+{\textbf{Todo Manager 1.5.5} --- local REST API at port 4567};
+\draw[arrow] (features)--(steps);
+\draw[arrow] (steps)--(helpers);
+\draw[arrow] (helpers)--(api);
+\end{tikzpicture}
+\captionof{figure}{How acceptance scenarios reach the API and assess its behavior.}
+\label{fig:architecture}
+\end{center}
+
+\ReportSubsection{4.2 Setup, Assertions, and Cleanup}
+The shared readiness step stops any existing API instance and starts the bundled
+JAR. It waits for HTTP 200 and a todos array, then records the seeded todos,
+projects, and categories. The remaining \textit{Background} steps create the fixtures for
+the example. Each scenario keeps its responses and selected IDs in Cucumber's
+\Path{this} state, which is separate for each case.
+
+After a write, the steps read back the data to check what was stored. Where a
+change should affect only one record, the tests also compare the other records
+with the saved state. This allows the tests to detect unwanted side effects
+that would not be apparent from the response status alone.
+
+The \textit{After} hook runs even if an assertion fails. It stops and restarts the JAR,
+compares the seeded records with the initial snapshot, and stops the service
+again. Before comparison, the helpers sort records and relationship references
+by ID so that a different array order does not cause a false failure.
+
+\ReportSubsection{4.3 Independence and Code Organization}
+Each example gets a fresh application process and creates its own fixtures.
+Helpers use returned IDs or look up records by title, so the tests do not need
+to predict which ID will be allocated next. Shared request and payload functions
+keep the HTTP handling in one place. Conversion of Gherkin strings to booleans
+is limited to the boolean fields, leaving invalid values intact for error tests.
+HTTP requests have a five-second timeout, with separate time limits for readiness
+and application startup and shutdown.

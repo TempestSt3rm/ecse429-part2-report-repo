@@ -1,0 +1,45 @@
+\ReportSection{7. AI Assistance Disclosure}
+\ReportSubsection{7.1 AI Tools Used}
+We used AI to help with repetitive implementation work and to make our project
+documents more concise. We wrote the main user stories, feature files, and
+scenario outlines, and chose the behavior we wanted to test. We also wrote the
+expected failures in \Path{BUG_REPORT.md}. AI helped us shorten those descriptions
+while keeping the expected behavior, observed results, and impact clear.
+
+We wrote JavaScript code for the suite and used AI to help with its
+implementation, particularly the helpers and the consistency of code written by
+different team members. This included organizing shared steps, applying common
+request and assertion patterns, and helping the separate stories work together
+in one suite. We used Codex to help set up the LaTeX formatting, format our
+writing into paragraphs, tables, and lists, and revise the wording.
+
+\ReportSubsection{7.2 Verification of AI Output}
+We ran the suite and compared the results with the expected behavior in our
+scenarios and bug report. Running with different random seeds checked whether
+the cases behaved consistently when their order changed. The restoration checks
+and service-stopped run also checked the setup and cleanup behavior. These checks
+helped us assess whether the shared code supported the tests we intended to run.
+
+For the written report, we reviewed the text against our test design and
+recorded results. Shorter wording still needs to preserve
+what we tested, what we expected, and what actually happened. The LaTeX output
+was also compiled and checked for layout issues.
+
+\ReportSubsection{7.3 Strengths and Limitations}
+AI helped us apply common patterns across similar tests and reduce repeated
+code. This was useful when combining work from several people, because the
+stories needed to use the same helpers and behave consistently within the suite.
+It also helped us organize the results and express our findings more clearly.
+
+However, AI can misunderstand an expected outcome or suggest an assertion that
+checks the wrong thing. A test passing only shows that its assertions were met.
+It does not establish that those assertions describe the intended behavior.
+The same applies to the report: making an explanation shorter is useful only if
+it still matches the scenario and its evidence.
+
+\ReportSubsection{7.4 Prompt Examples}
+\begin{enumerate}[leftmargin=1.6em,itemsep=6bp,topsep=4bp]
+\item ``Implement this text block ... into the LaTeX and break it up into a numbered list form.''
+\item ``In my categories test suite I implemented helpers. I know that in this file it does something similar. Can you abstract it to use the same helper?''
+\item ``Can you make the BUG\_REPORT markdown more concise?''
+\end{enumerate}

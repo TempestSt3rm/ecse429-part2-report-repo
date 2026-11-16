@@ -1,0 +1,43 @@
+\ReportSection{7. AI Assistance Disclosure}
+\ReportSubsection{7.1 Tools, Purposes, and Available Records}
+Codex assisted Jeffrey with category-test integration, test-suite repairs,
+verification, report setup, and this draft. The recorded integration prompt was
+``ok lets carefully add my stories''; assistance covered transferring category
+stories, merging shared helpers, running verification, and updating documents.
+The repair prompt was ``Fix it''; the associated record describes helper and
+lifecycle repairs and verification. These repairs concern the test suite, not
+new findings in Todo Manager~[\ref{ref:assistance}].
+
+\ReviewNote{The team's complete disclosure is still required. Collect each
+member's tools, purposes, and actual prompts, including earlier test-authoring
+assistance. Record Part B usage separately from the supplied Part A disclosure,
+and describe the reviews team members actually performed.}
+
+\ReportSubsection{7.2 Report Preparation Prompts}
+The following prompts document the report assistance available in this chat.
+\begin{ReportTable}{@{}P{.18\linewidth}Y@{}}
+\toprule
+\textbf{Purpose} & \textbf{Prompt}\\
+\midrule
+Requirements review & ``Project part 2 what needs to be in the report?''\\
+Skeleton and local build & ``Make a folder for the report I want it latex, I will be the only one working on it so its not overleaf integrated, you will be using a tex compiler to create pdfs right now I just want you to make the skeleton and setup''\\
+Reference review & ``Take a look at the part1 example that my team mate provided''\\
+Layout adaptation & ``Use the same layout / general structure I know part2 is different but I like this style cause we got a 100 on the first part''\\
+Compilation & ``compile the tex into pdf and send to me''\\
+Information audit & ``Take a look at the repo what are you missin g in terms of info needed to write the report?''\\
+Draft preparation & ``Create the draft of the report, the code is finalized just doing some small readme and reporting changes but the repo is now stable, output the pdf after making the latex for me to review''\\
+\bottomrule
+\end{ReportTable}
+
+\ReportSubsection{7.3 Verification, Strengths, and Limitations}
+For this draft, Codex read the feature and step sources, checked recorded result
+counts, compared the tested-source hashes with the current files, and compiled
+and rendered the LaTeX for layout review. These checks support the reported
+counts and presentation. They cannot determine whether an undocumented workflow
+policy is an API requirement or replace the team's review of the acceptance
+criteria. AI made it easier to organize repeated results and formatting, but a
+plausible explanation still needs to match its source evidence.
+
+\ReviewNote{This PDF is provided for Jeffrey's review. Complete the team
+disclosure and confirm final artifact references before treating it as the
+submission version.}

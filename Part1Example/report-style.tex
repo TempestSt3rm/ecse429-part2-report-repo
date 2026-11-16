@@ -1,0 +1,150 @@
+% ECSE 429 adaptation of the ECSE 211 Profile 1 visual system.
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage{tgtermes}
+\else
+  \usepackage[no-math]{fontspec}
+  \setmainfont{Times New Roman.ttf}[
+    Path=fonts/,
+    BoldFont=Times New Roman Bold.ttf,
+    ItalicFont=Times New Roman Italic.ttf,
+    BoldItalicFont=Times New Roman Bold Italic.ttf]
+\fi
+\usepackage[letterpaper,margin=.8in]{geometry}
+\usepackage{xcolor,graphicx,amsmath,newtxmath}
+\SetSymbolFont{operators}{normal}{OT1}{ntxtlf}{m}{n}
+\SetSymbolFont{operators}{bold}{OT1}{ntxtlf}{b}{n}
+\SetMathAlphabet{\mathrm}{normal}{OT1}{ntxtlf}{m}{n}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,shapes.geometric,positioning,calc}
+\usepackage{array,booktabs,tabularx,enumitem}
+\usepackage{caption,fancyhdr,listings}
+\usepackage{xurl}
+\definecolor{Heading}{RGB}{31,42,60}
+\definecolor{Rule}{RGB}{154,167,189}
+\definecolor{Caption}{RGB}{90,107,133}
+\definecolor{DiagramBlue}{RGB}{49,77,121}
+\definecolor{DiagramFill}{RGB}{240,243,247}
+\definecolor{DraftInk}{RGB}{92,102,116}
+\usepackage[unicode,colorlinks=true,linkcolor=Heading,urlcolor=Heading,
+  citecolor=Heading,filecolor=Heading,runcolor=Heading,
+  pdfdisplaydoctitle=true]{hyperref}
+\hypersetup{
+  pdftitle={ECSE 429 -- Project Part A Report},
+  pdfauthor={James Helou; Jeffrey Lim; Mahan Maalekian; Matthew Petruzziello},
+  pdfsubject={Group 3 -- exploratory testing of the Todo Manager REST API}}
+
+\newcommand{\BodyFont}{\fontsize{12bp}{13.8bp}\selectfont}
+\newcommand{\TableFont}{\fontsize{10.5bp}{12.2bp}\selectfont}
+% Keep headings with their next paragraph without an extra package dependency.
+\newcommand{\Needspace}[1]{%
+  \par\begingroup\dimen0=#1\relax
+  \dimen2=\pagegoal\advance\dimen2 by -\pagetotal
+  \ifdim\dimen2<\dimen0\newpage\fi\endgroup}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4bp}
+\setlength{\topskip}{0pt}
+\setlength{\emergencystretch}{1em}
+\raggedright
+\AtBeginDocument{\BodyFont}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyfoot[L]{\fontsize{9bp}{11bp}\selectfont\color{Caption}ECSE 429 \quad Group 3}
+\fancyfoot[R]{\fontsize{9bp}{11bp}\selectfont\color{Caption}\thepage}
+
+% Retain the ECSE 211 cover's centred blocks and measured baselines.
+\newcommand{\CoverLine}[3]{%
+  \node[anchor=base,inner sep=0pt,font=\fontsize{#2bp}{#2bp}\selectfont]
+    at ([yshift=-#1bp]current page.north) {#3};}
+\newcommand{\ReportCover}{%
+  \thispagestyle{empty}
+  \begin{tikzpicture}[remember picture,overlay]
+    \CoverLine{100.14}{16}{\textbf{McGill University}}
+    \CoverLine{114.8}{12}{Department of Electrical and Computer Engineering}
+    \CoverLine{128.6}{12}{\CourseTitle}
+    \CoverLine{212.53}{28}{\textbf{\ProjectTitle}}
+    \CoverLine{233.52}{16}{\ProjectSubtitle}
+    \CoverLine{254.5}{12}{Report}
+    \draw[Rule,line width=.3bp]
+      ([xshift=57.6bp,yshift=-271.5bp]current page.north west)
+      -- ([xshift=-57.6bp,yshift=-271.5bp]current page.north east);
+    \CoverLine{310.65}{14}{\textbf{Group \GroupNumber}}
+    \node[anchor=north,inner sep=0pt] at
+      ([yshift=-329.68bp]current page.north) {%
+      \begin{tabular}{@{}l@{\hspace{1.8em}}r@{}}
+        \TeamRoster
+      \end{tabular}};
+    \CoverLine{472.47}{12}{Submitted \SubmissionDate}
+  \end{tikzpicture}
+  \null\newpage}
+
+\newcommand{\ReportSection}[1]{%
+  \par\Needspace{55bp}\addvspace{6bp}
+  {\color{Heading}\fontsize{16bp}{18.4bp}\selectfont\bfseries
+   \rule{0pt}{14.94bp}%
+   \rlap{\raisebox{-8.26bp}[0pt][0pt]{\color{Rule}\rule{\linewidth}{.3bp}}}%
+   #1\par}
+  \nobreak\vspace{-2bp}\hrule width 0pt height .3bp
+  \nobreak\vspace{5bp}}
+\newcommand{\ReportSubsection}[1]{%
+  \par\Needspace{40bp}\addvspace{5bp}
+  {\color{Heading}\fontsize{13bp}{15bp}\selectfont\bfseries
+   \rule{0pt}{12.14bp}#1\par}
+  \nobreak\vspace{1bp}}
+\newcommand{\RunIn}[1]{\textbf{#1:}\ }
+\newcommand{\NewContentPage}{\newpage\BodyFont}
+\newcommand{\Draft}[1]{\textcolor{DraftInk}{\textit{[#1]}}}
+\newcommand{\Prompt}[1]{\par{\color{DraftInk}\textit{[#1]}}\par}
+\newcommand{\DraftNotice}{%
+  {\fontsize{10bp}{12bp}\selectfont\color{Caption}%
+  WORKING OUTLINE \quad Grey bracketed text and figure panels are drafting
+  placeholders, not reported findings.\par}}
+\newcommand{\Path}[1]{\texttt{\fontsize{10.5bp}{12.2bp}\selectfont\detokenize{#1}}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newenvironment{ReportTable}[1]{%
+  \par\begingroup\TableFont
+  \setlength{\tabcolsep}{5bp}\renewcommand{\arraystretch}{1.16}
+  \tabularx{\linewidth}{#1}%
+}{\endtabularx\par\endgroup\vspace{2bp}}
+\newenvironment{Charter}{%
+  \par\begingroup\setlength{\leftskip}{12bp}\setlength{\rightskip}{12bp}
+  \color{Heading}\itshape
+}{\par\endgroup}
+
+\DeclareCaptionFont{captionblue}{\color{Caption}}
+\captionsetup[figure]{hypcap=false,font={small,captionblue},labelfont=bf,textfont=normalfont,
+  labelsep=period,justification=centering,skip=5bp}
+\newcommand{\FigurePlaceholder}[5]{%
+  \par\begingroup\centering
+  \begin{tikzpicture}
+    \node[draw=Rule,fill=DiagramFill,line width=.55bp,rounded corners=4bp,
+      minimum height=#1,text width=\dimexpr\linewidth-26bp\relax,
+      align=center,inner sep=10bp] {%
+      {\color{DiagramBlue}\fontsize{11bp}{13bp}\selectfont\bfseries #2}\\[5bp]
+      {\color{Caption}\fontsize{10bp}{12bp}\selectfont DIAGRAM PLACEHOLDER}\\[4bp]
+      {\color{DraftInk}\fontsize{10bp}{12bp}\selectfont #3}};
+  \end{tikzpicture}
+  \captionof{figure}{#4}\label{#5}
+  \par\endgroup\vspace{3bp}}
+% Styles available for the later diagram-authoring pass.
+\tikzset{
+  process/.style={draw=DiagramBlue,fill=DiagramFill,line width=.5bp,
+    rounded corners=5bp,align=center,inner sep=5bp,
+    font=\sffamily\fontsize{9bp}{10.5bp}\selectfont},
+  terminal/.style={process,fill=DiagramBlue,text=white},
+  decision/.style={diamond,aspect=2.8,draw=DiagramBlue,fill=DiagramFill,
+    align=center,inner sep=2bp,font=\sffamily\fontsize{9bp}{10.5bp}\selectfont},
+  arrow/.style={-{Stealth[length=4bp,width=3bp]},DiagramBlue,line width=.5bp},
+  branch/.style={font=\sffamily\fontsize{8bp}{9bp}\selectfont,text=black}
+}
+\lstset{
+  basicstyle=\ttfamily\fontsize{9.5bp}{11.5bp}\selectfont,
+  columns=fullflexible,keepspaces=true,breaklines=true,
+  frame=single,framerule=.35bp,rulecolor=\color{Rule},
+  backgroundcolor=\color{DiagramFill},framesep=6bp,
+  aboveskip=5bp,belowskip=6bp,showstringspaces=false,
+  xleftmargin=7bp,xrightmargin=7bp}

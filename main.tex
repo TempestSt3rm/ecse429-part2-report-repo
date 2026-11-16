@@ -1,0 +1,45 @@
+% !TeX program = pdflatex
+% Part B report using the supplied Part A visual system.
+\documentclass[12pt,letterpaper]{article}
+\input{report-style.tex}
+\graphicspath{{figures/}}
+
+\newcommand{\CourseTitle}{ECSE 429: Software Validation}
+\newcommand{\ProjectTitle}{Project Part B}
+\newcommand{\ProjectSubtitle}{Story Testing of REST API}
+\newcommand{\SubmissionDate}{November 16, 2026}
+\newcommand{\GroupNumber}{3}
+\newcommand{\RepoURL}{https://github.com/james-helou/ECSE429-Project-B}
+\newcommand{\SourceCommit}{e404151581db239870832037758d61221c01e61a}
+\newcommand{\CodeFile}[1]{\href{https://github.com/james-helou/ECSE429-Project-B/blob/e404151581db239870832037758d61221c01e61a/#1}{\Path{#1}}}
+% Roster carried over from the team's Part A reference.
+\newcommand{\TeamRoster}{%
+  James Helou & 261177052\\
+  Jeffrey Lim & 261146821\\
+  Mahan Maalekian & 261175419\\
+  Matthew Petruzziello & 261140144}
+
+\begin{document}
+\hypersetup{pageanchor=false}
+\ReportCover
+\setcounter{page}{1}
+\hypersetup{pageanchor=true}
+% Target: 5--10 pages. Reflow these manual breaks as final content is added.
+% Uppercase placeholders mark the sections Jeffrey will complete.
+\input{sections/01-scope-and-deliverables}
+\NewContentPage
+\input{sections/02-story-testing-method}
+\NewContentPage
+\input{sections/03-story-coverage}
+\NewContentPage
+\input{sections/04-suite-structure}
+\NewContentPage
+\input{sections/05-repository-and-execution}
+\NewContentPage
+\input{sections/06-results}
+\input{sections/06-bug-findings}
+\NewContentPage
+\input{sections/07-ai-disclosure}
+\NewContentPage
+\input{sections/08-references}
+\end{document}

@@ -1,0 +1,36 @@
+\ReportSection{6. Findings of Story Test Execution}
+\ReportSubsection{6.1 Recorded Results}
+We ran the full suite with seed 765432, with 122 of the 146 cases passing and
+24 failing. There were 1,051
+passed steps, 24 failed steps, and four skipped steps. The skipped steps followed
+failed assertions.
+
+\begin{ReportTable}{@{}Yrrr@{}}
+\toprule
+\textbf{Area / story IDs} & \textbf{Cases} & \textbf{Passed} & \textbf{Failed}\\
+\midrule
+Todos / 1--5 & 36 & 32 & 4\\
+Categories / 6--10 & 30 & 30 & 0\\
+Interoperability / 11--15 & 50 & 30 & 20\\
+Projects / 16--20 & 30 & 30 & 0\\
+\midrule
+\textbf{Total} & \textbf{146} & \textbf{122} & \textbf{24}\\
+\bottomrule
+\end{ReportTable}
+
+All category and project cases passed. The passing cases covered creating,
+reading, changing, and deleting records, as well as the ordinary relationship
+operations. The failures were concentrated in relationship behavior and todo
+filters. These results describe the workflows and data in our suite; other API
+routes and input combinations would need their own tests.
+
+\ReportSubsection{6.2 Readiness, Order Independence, and State Restoration}
+\input{sections/execution-order-evidence}
+
+The \textit{After} hooks restored the seeded records and stopped the service after
+each case, including those with failed assertions. The restoration checks passed
+in both orders, confirming that cleanup completed even when a test failed.
+
+With autostart disabled and the API stopped, every case failed at readiness.
+The cleanup hooks still completed successfully. This confirms that the suite
+detects an unavailable service before attempting the scenario operations.

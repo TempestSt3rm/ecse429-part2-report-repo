@@ -1,0 +1,24 @@
+\ReportSection{8. References and Supporting Artifacts}
+The links below identify the source code used for the tests. The execution
+records are stored in \Path{Project/Part2/Verification/}, beside the repository
+in our working directory.
+
+\begin{enumerate}[label={[\arabic*]},ref=\arabic*,leftmargin=2em,itemsep=8bp,topsep=6bp]
+\item\label{ref:api} Todo Manager 1.5.5 REST API documentation, served while the application is running: \url{http://localhost:4567/docs} and \url{http://localhost:4567/docs/swagger}.
+\item\label{ref:source} Group 3. \href{https://github.com/james-helou/ECSE429-Project-B}{ECSE429-Project-B repository}. Tested executable revision:\\
+\Path{e404151581db239870832037758d61221c01e61a}.\\
+Source organization: \href{https://github.com/james-helou/ECSE429-Project-B/tree/e404151581db239870832037758d61221c01e61a/features}{\Path{features/}}, \href{https://github.com/james-helou/ECSE429-Project-B/tree/e404151581db239870832037758d61221c01e61a/steps}{\Path{steps/}}, \CodeFile{TestUtil.js}, and \CodeFile{setup.js}. The README and bug report contain later documentation edits.
+\item\label{ref:bugs} Group 3. \Path{ECSE429-Project-B/BUG_REPORT.md}, November 16 version. Nine failing findings, their policy/contract distinctions, reproduction steps and impact; BR17 records supported inline creation.
+\item\label{ref:finalrun} November 16 full-run and outage evidence:\\
+\Path{final-check-2026-11-16.json} and \Path{.log};\\
+\Path{final-check-2026-11-16-source.json};\\
+\Path{final-check-2026-11-16-summary.json} and \Path{.md};\\
+\Path{final-outage-2026-11-16.json} and \Path{.log}.
+\item\label{ref:orders} Execution-order comparison:\\
+\Path{report-final-seed-20261117.json} and \Path{.log}.\\
+Earlier November 15 comparison: \Path{repaired-full-seed-765432.json} and \Path{repaired-full-seed-20261117.json}, with their logs and tested-source hashes. The November 16 runs above verify the current executable code.
+\item\label{ref:probes} November 16 targeted probes: \Path{bug-report-probes-2026-11-16.json}. Controls compare plain XML, CDATA and JSON; direct versus linked deletion reads; and valid versus unknown filters.
+\item\label{ref:assignment} ECSE 429 project specification, Part B (pp.~5--6), with the Part A bug format (p.~4); Fall 2026 course project overview, generative AI disclosure requirements (p.~5).
+\end{enumerate}
+
+\ReportSubsection{PUT REFERENCES TO ZIP AND VIDEO HERE}

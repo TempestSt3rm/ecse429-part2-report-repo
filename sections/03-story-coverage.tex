@@ -1,0 +1,49 @@
+\ReportSection{3. User Stories and Acceptance Coverage}
+\ReportSubsection{3.1 Story Coverage}
+The table lists the outlines for each story and its example results with seed 765432.
+\begin{ReportTable}{@{}P{.05\linewidth}YP{.09\linewidth}P{.08\linewidth}P{.07\linewidth}@{}}
+\toprule
+\textbf{ID} & \textbf{User goal} & \textbf{Outlines} & \textbf{Pass} & \textbf{Fail}\\
+\midrule
+1 & Record a task on the todo list & 3 & 7 & 0\\
+2 & Mark a task as done & 3 & 7 & 0\\
+3 & Change the wording of a task & 3 & 6 & 0\\
+4 & Remove a task from the todo list & 3 & 6 & 0\\
+5 & See what is left to do & 5 & 6 & 4\\
+6 & Create a category & 3 & 6 & 0\\
+7 & View category details & 3 & 6 & 0\\
+8 & Rename a category & 3 & 6 & 0\\
+9 & Edit a category's description & 3 & 6 & 0\\
+10 & Delete a category & 3 & 6 & 0\\
+11 & Add a task to a course project & 5 & 6 & 4\\
+12 & Take a task off a course project & 4 & 6 & 2\\
+13 & Tag a task with a category & 5 & 6 & 4\\
+14 & File a course project under a category & 5 & 6 & 4\\
+15 & See what is left on a course project & 6 & 6 & 6\\
+16 & Record a course project & 3 & 6 & 0\\
+17 & Correct project details & 3 & 6 & 0\\
+18 & Complete or reopen a project & 3 & 6 & 0\\
+19 & Remove a project & 3 & 6 & 0\\
+20 & Find a course project & 3 & 6 & 0\\
+\midrule
+ & \textbf{Total} & \textbf{72} & \textbf{122} & \textbf{24}\\
+\bottomrule
+\end{ReportTable}
+
+\ReportSubsection{3.2 Example of an Acceptance Test}
+In Story 6, the \textit{Background} runs for each \textit{Examples} row before the normal, alternate,
+or error flow begins. The normal flow checks category creation as follows:
+\begin{enumerate}[leftmargin=1.6em,itemsep=2bp,topsep=4bp]
+\item Create the initial records and save their state for this example.
+\item Read the title and description from the example row: ``Coursework / anything with marks'' or ``Errands / things to do on campus.''
+\item Create the category and check for HTTP 201.
+\item Read the category back and compare its title and description with the supplied values.
+\item Check that exactly one category was added and that unrelated records stayed unchanged.
+\end{enumerate}
+The alternate flow omits the description, while the error flow supplies an empty
+title.
+
+\ReportSubsection{3.3 Coverage Limits}
+The suite covers selected student workflows. A finding can affect several
+examples or stories, so the failed-example count and the finding count measure
+different things.

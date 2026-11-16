@@ -1,0 +1,48 @@
+\ReportSection{2. Story Testing Method}
+\ReportSubsection{2.1 User Stories and Acceptance Criteria}
+We chose a student organizing coursework and personal tasks as our user. Each
+story describes something the student wants to do and why it is useful. For
+example, Story 6 states: ``As a student, I want to create a category so that I can
+organize my work into meaningful groups.'' The acceptance tests then check
+whether the API supports that goal.
+
+We used our Part A findings to decide what to check after each operation.
+Relationship tests read the association from both objects, deletion tests check
+whether references remain, and write tests read back the stored records. This
+matters because a request can return a successful status while leaving the data
+in an unexpected state. We compared the results with the API documentation and
+the expected behavior recorded in our bug report~[\ref{ref:api},\ref{ref:bugs}].
+
+\ReportSubsection{2.2 Normal, Alternate, and Error Flows}
+Every feature has a \textit{Background} and at least one normal, alternate, and error
+\textit{Scenario Outline}. The \textit{Background} starts the application and creates the data
+needed for each example. The normal flow completes the main operation. The
+alternate flow reaches the goal with a different valid input or approach. The
+error flow checks what happens when the operation cannot be completed.
+
+For Story 6, the normal flow creates a category with a title and description.
+The alternate flow creates one with only a title. The error flow submits an empty
+title and expects HTTP 400 with the validation message. It also compares the
+stored records before and after the request, because rejecting the input should
+leave the system unchanged.
+
+Each \textit{Examples} table supplies the data for its \textit{Scenario Outline}. Most outlines
+have two rows, while two todo outlines have a third row. Our 72 outlines therefore
+produce 146 cases, including the relationship and filter checks that reproduce
+our reported findings.
+
+\ReportSubsection{2.3 Deciding What the API Should Do}
+Some expectations follow from the documentation or from the operation itself.
+For example, asking for a missing project's tasks should not return work from
+another project. Our test accepts either HTTP 404 with the expected error shape
+or HTTP 200 with an empty task array, because the documentation does not specify
+an exact missing-project response for this query.
+
+Other expectations come from how we want the student workflow to behave. These
+include seeing category membership from both objects, accepting a numeric ID
+where its string form works, and preserving links when changing only a title.
+Where the API does not clearly promise this behavior, we mark the failing
+scenario with both \Path{@bug} and \Path{@policy}. This way, the result shows
+which expectation failed and whether that expectation is an established API rule
+or a rule we chose for the workflow. We treat supported inline creation through
+a relationship request as a valid alternate flow.
